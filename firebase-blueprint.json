@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "TrackSchema": {
+      "title": "Track",
+      "description": "Standard representation of a music track in MusicKu.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique ID of the track" },
+        "uri": { "type": "string", "description": "Spotify URI resource link" },
+        "url": { "type": "string", "description": "Spotify track link" },
+        "name": { "type": "string", "description": "Name of the song" },
+        "duration_ms": { "type": "integer", "description": "Duration in milliseconds" },
+        "audio_url": { "type": "string", "description": "High-fidelity preview audio stream URL" }
+      },
+      "required": ["id", "name"]
+    },
+    "SearchQuerySchema": {
+      "title": "Search Query",
+      "description": "A saved search query from user search history.",
+      "type": "object",
+      "properties": {
+        "query": { "type": "string", "description": "The search keyword string" },
+        "searchedAt": { "type": "string", "format": "date-time", "description": "Timestamp when searched" }
+      },
+      "required": ["query"]
+    }
+  },
+  "firestore": {
+    "users/{userId}/likes/{trackId}": {
+      "schema": "TrackSchema",
+      "description": "Collection of tracks liked by a specific user."
+    },
+    "users/{userId}/history/{trackId}": {
+      "schema": "TrackSchema",
+      "description": "Collection of tracks recently listened to by a specific user."
+    },
+    "users/{userId}/queries/{queryId}": {
+      "schema": "SearchQuerySchema",
+      "description": "Collection of search records compiled by a user."
+    }
+  }
+}

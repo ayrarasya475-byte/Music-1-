@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // PILLAR 1: Master Gate. Deny-all by default to prevent unexpected traversal.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // PILLAR 3: Tiered Identity Logic. Enforce authenticated ownership checks.
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // PILLAR 2: Validation Blueprints for a Track. Enforce exact bounds and fields.
+    function isTrack(data) {
+      return data.size() >= 2
+        && data.size() <= 6
+        && data.keys().hasAll(['id', 'name'])
+        && data.id is string
+        && data.name is string
+        && (!('uri' in data) || data.uri is string)
+        && (!('url' in data) || data.url is string)
+        && (!('duration_ms' in data) || data.duration_ms is int)
+        && (!('audio_url' in data) || data.audio_url is string);
+    }
+
+    // PILLAR 2: Validation Blueprints for a Search Query.
+    function isSearchQuery(data) {
+      return data.size() >= 1
+        && data.size() <= 2
+        && data.keys().hasAll(['query'])
+        && data.query is string
+        && (!('searchedAt' in data) || data.searchedAt is string);
+    }
+
+    match /users/{userId} {
+      // Likes sub-collection. Only the owner can view, insert, or delete track likes.
+      match /likes/{trackId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId) 
+                     && (request.resource == null || (isTrack(request.resource.data) && trackId == request.resource.data.id));
+      }
+
+      // History sub-collection. Only the owner can view or write listening histories.
+      match /history/{trackId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId)
+                     && (request.resource == null || (isTrack(request.resource.data) && trackId == request.resource.data.id));
+      }
+
+      // Queries sub-collection. Only the owner can track their search history.
+      match /queries/{queryId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId)
+                     && (request.resource == null || isSearchQuery(request.resource.data));
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "MusicKu",
+  "description": "MusicKu - Premium music web player built with high-fidelity HD audio, real-time lyrics syncing, smart Spotify search integrations, and responsive multi-view dashboard navigation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
